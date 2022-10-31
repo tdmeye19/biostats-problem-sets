@@ -1,0 +1,150 @@
+---
+title: "Problem Set 2"
+author: "Trent Meyer"
+date: "2022-10-27"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+Problem set 2 is giving us practice organizing an RStudio project, connecting it to a GitHub repo, which will then allow us to manipulate data sets and create visualizations.
+
+## Usual Stuff
+```{r}
+rm(list = ls()) # clears the environment
+library(dplyr) # loads in the dplyr package
+library(ggplot2) # loads in the ggplot2 package
+library(here) # loads in the here package
+```
+
+## Reading in the Data
+```{r}
+halloween <- read.csv(here("Data", "Halloween_data_PS2.csv"), stringsAsFactors = TRUE)
+```
+
+I was going to add another step to mutate and do as.factor() for the Costume and Type to convert them to factors. Instead, I did stringsAsFactors = TRUE to condense things.
+
+## Examine the dataset with at least 2 functions.  
+
+```{r}
+head(halloween) # look at the first six observations in halloween
+```
+
+```{r}
+str(halloween) 
+# get an idea of what type each variable is along with numbers
+# of levels for factor variable
+```
+
+I think using str() will help me to get an idea of the number of factor levels, which would then lead me into possibly using unique() and fixing any issues with too many factor levels because of errors.
+
+## Fix any errors you see in the dataset.
+```{r}
+unique(halloween$Costume) 
+```
+
+This shows us that there are 15 levels for Costume, with cases being an issue for a few levels, so I am going to condense them.
+
+Right now, there are three levels that are all Wonder Woman, so I am going to condense them into "Wonder Woman"
+
+```{r}
+wonderwoman <- which(halloween$Costume == "wonder woman" |
+                       halloween$Costume == "Wonder Woman" |
+                       halloween$Costume == "Wonder woman")
+
+halloween$Costume[wonderwoman] <- "Wonder Woman"
+```
+
+Condensing the levels for Witch.
+
+```{r}
+witches <- which(halloween$Costume == "Witch" |
+                       halloween$Costume == "witch " |
+                       halloween$Costume == "witch")
+
+halloween$Costume[witches] <- "Witch"
+```
+
+The one level confused me, but then I realized it had a space at the end: "witch ", which made it different than "witch"
+
+```{r}
+creepyclown <- which(halloween$Costume == "creepy clown" |
+                       halloween$Costume == "Creepy clown" |
+                       halloween$Costume == "clown")
+
+halloween$Costume[creepyclown] <- "Creepy clown"
+```
+
+```{r}
+halloween$Costume <- factor(halloween$Costume)
+unique(halloween$Costume)
+```
+
+This code is just fixing the factor levels, now I need to do the same thing for Type, as there are four levels, when there should be two.
+
+```{r}
+scary <- which(halloween$Type == "scary" |
+                 halloween$Type == "Scary" |
+                 halloween$Type == "scary ")
+
+halloween$Type[scary] <- "Scary"
+```
+
+There were three different scary Type levels, so I combined them into "Scary", and I ran into the same issue where there was a space at the end of one of the levels: "scary ".
+
+```{r}
+halloween$Type <- factor(halloween$Type)
+unique(halloween$Type)
+```
+
+Now I think I have the factor variables fixed to show the correct number of factor levels.
+
+## Calculate the mean age of trick-or-treaters and the mean number of pieces of candy 
+taken broken down by Costume and Type
+
+## Use those data to create figure 1, below. Match figure 1 as closely as you can. 
+```{r, fig.cap= "Figure 1. Mean number of pieces of candy taken as a function of age of trick-or-treater and costume type (Red dots = costumes that are not scary; blue dots = scary costumes)."}
+meanhalloween <- halloween %>% group_by(Costume, Type) %>% 
+  summarise(meancandy = mean(candy_pieces, na.rm = TRUE),
+            meanage = mean(age, na.rm = TRUE))
+
+ggplot(data = meanhalloween, aes(x = meanage, y = meancandy)) +
+  geom_point(aes(colour = Type), size = 3) + 
+  labs(x = "Mean age of kid (years)",
+       y = "Mean number pieces taken") +
+  theme_bw()
+```
+
+Here I had to include the na.rm=TRUE because it was giving NA for the values because when grouping together Costume and Type, some NA values were present, and made the mean values NA, which would not work on the plot.
+
+## Next write code that isolates the data for children in “not scary” costumes who are 10 years old or younger and use the resulting data to plot a histogram showing the numberof kids in each age class and that comes as close as you can to replicating figure 2, below. 
+```{r, fig.cap= "Number of children age 10 and under wearing costumes that are not scary."}
+fig2_df <- halloween %>% filter(Type == "Not scary" & age <= 10)
+ggplot(data = fig2_df, aes(x = age)) +
+  geom_histogram(bins = 4) +
+  labs(x = "Age of child",
+       y = "Number")
+```
+
+I had to change the number of bins, as the sample size is not that large, so four bins matched the plot, and worked.
+
+## Next, write code that replicates figure 3 below as closely as you can (Hint: try 
+`coord_flip()` in your ggplot to get the axes reversed so that you can read the costume
+choice names). 
+```{r, fig.cap="Box and whisker plot showing the age distribution of children wearing different Halloween costumes choices, separated according to whether the costume is scary or not"}
+ggplot(data = halloween, aes(x = Costume, y = age)) +
+  geom_boxplot() +
+  geom_point(alpha = 0.15, size = 4) +
+  facet_wrap(~Type) +
+  coord_flip() +
+  labs(x = "Costume choice",
+       y = "Child age (years)")
+```
+
+# Conclusion
+
+This problem set gave me a good idea of how to fix errors in the data set using dplyr, and how to create visualizations from data sets that I need to manipulate from the main halloween df. It gave me a good idea of how to read in data, look at it and find errors, and then how to mainipulate data sets to create visualizations.
