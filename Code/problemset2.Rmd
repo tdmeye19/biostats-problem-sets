@@ -148,3 +148,5 @@ ggplot(data = halloween, aes(x = Costume, y = age)) +
 # Conclusion
 
 This problem set gave me a good idea of how to fix errors in the data set using dplyr, and how to create visualizations from data sets that I need to manipulate from the main halloween df. It gave me a good idea of how to read in data, look at it and find errors, and then how to mainipulate data sets to create visualizations.
+
+You did a nice job! I think your code is well executed and you did a nice job explaining the what/why of what you were doing.
